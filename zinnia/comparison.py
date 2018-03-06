@@ -1,4 +1,6 @@
 """Comparison tools for Zinnia"""
+import sys
+import unicodedata
 from math import sqrt
 
 from django.contrib.sites.models import Site
@@ -8,14 +10,15 @@ from django.utils import six
 from django.utils.functional import cached_property
 from django.utils.html import strip_tags
 
-import regex as re
-
 from zinnia.models.entry import Entry
 from zinnia.settings import COMPARISON_FIELDS
 from zinnia.settings import STOP_WORDS
 
 
-PUNCTUATION = re.compile(r'\p{P}+')
+PUNCTUATION = dict.fromkeys(
+    i for i in range(sys.maxunicode)
+    if unicodedata.category(six.unichr(i)).startswith('P')
+)
 
 
 def pearson_score(list1, list2):
@@ -104,7 +107,7 @@ class ModelVectorBuilder(object):
         """
         datas = strip_tags(datas)             # Remove HTML
         datas = STOP_WORDS.rebase(datas, '')  # Remove STOP WORDS
-        datas = PUNCTUATION.sub('', datas)    # Remove punctuation
+        datas = datas.translate(PUNCTUATION)  # Remove punctuation
         datas = datas.lower()
         return [d for d in datas.split() if len(d) > 1]
 
