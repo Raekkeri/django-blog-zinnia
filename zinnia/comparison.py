@@ -15,10 +15,16 @@ from zinnia.settings import COMPARISON_FIELDS
 from zinnia.settings import STOP_WORDS
 
 
-PUNCTUATION = dict.fromkeys(
-    i for i in range(sys.maxunicode)
-    if unicodedata.category(six.unichr(i)).startswith('P')
-)
+REGEX = {}
+
+def get_punctuation():
+    if not 'PUNCTUATION' in REGEX:
+        PUNCTUATION = dict.fromkeys(
+            i for i in range(sys.maxunicode)
+            if unicodedata.category(six.unichr(i)).startswith('P')
+        )
+        REGEX['PUNCTUATION'] = PUNCTUATION
+    return REGEX['PUNCTUATION']
 
 
 def pearson_score(list1, list2):
@@ -107,7 +113,7 @@ class ModelVectorBuilder(object):
         """
         datas = strip_tags(datas)             # Remove HTML
         datas = STOP_WORDS.rebase(datas, '')  # Remove STOP WORDS
-        datas = datas.translate(PUNCTUATION)  # Remove punctuation
+        datas = datas.translate(get_punctuation())  # Remove punctuation
         datas = datas.lower()
         return [d for d in datas.split() if len(d) > 1]
 
